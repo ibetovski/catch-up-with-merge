@@ -11,7 +11,7 @@ fi
 
 # install the script
 cd $BIN_PATH
-curl -sS https://raw.githubusercontent.com/ibetovski/catch-up-with-merge/master/catch-up | sh
+curl -sS https://raw.githubusercontent.com/ibetovski/catch-up-with-merge/master/catch-up > $BIN_PATH/catch-up
 chmod x+u $BIN_PATH/catch-up
 
 # check if the user's local bin folder is in the PATH variable. If not, add it.
