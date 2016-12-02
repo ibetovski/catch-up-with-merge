@@ -1,0 +1,65 @@
+#!/bin/bash
+# This script is hardcoded to work with remote named "origin"
+# author: Iliyan Betovski <iliyan.betovski@mobilewaves.com>
+
+# Where to keep the branch names.
+FILE="____CATCH-UP-BRANCHES"
+
+# how many integers to put in the temporary branch's name
+RANDOM_NUMBER_LENGTH=8
+
+# if the option to the script is "--continue"
+if [[ $1 == "--continue" ]]; then
+  # check if the temporary file exists. We need it take the branch names from there.
+  if [ ! -f $FILE ]; then
+    echo "--- First you should do \"catch-up [branch-name]\"";
+    # exit
+  fi
+
+  echo "--- Deletes original branch";
+
+
+  FEATURE_BRANCH=`cat $FILE | awk '{print $1}'`
+  TEMP_BRANCH=`cat $FILE | awk '{print $2}'`
+  rm $FILE;
+echo $FEATURE_BRANCH
+  git branch -D $FEATURE_BRANCH;
+
+  echo "--- Renames the current branch to the FEATURE_BRANCH"
+
+  git branch -m $TEMP_BRANCH $FEATURE_BRANCH
+  git branch --set-upstream-to origin/${FEATURE_BRANCH}
+
+else
+
+  # if a branch name is provided, create a new (temporary) branch from it
+  BRANCH_TO_CATCHUP_WITH=$1
+  FEATURE_BRANCH=$(git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ \1/')
+  RANDOM_NUMBER="$(( ( RANDOM % 9 ) ))";
+
+  # generates a random number to add to the branch's name
+  i=1;
+  while [[ i -lt $RANDOM_NUMBER_LENGTH ]]
+    do
+      RANDOM_NUMBER="${RANDOM_NUMBER}$(( ( RANDOM % 9 ) ))"
+      i=$(($i + 1))
+    done
+
+  TEMP_BRANCH=${FEATURE_BRANCH}-temp${RANDOM_NUMBER}
+
+  # before do anything, fetch the changes from the remote
+  git fetch
+  DIFF=`git diff ${BRANCH_TO_CATCHUP_WITH} 0> /dev/null`
+  if [ ${#DIFF} -gt 0 ]; then
+    git branch $TEMP_BRANCH $BRANCH_TO_CATCHUP_WITH
+    git checkout $TEMP_BRANCH
+    git merge $FEATURE_BRANCH
+
+    # Keep temporary information regarding the branches names
+    echo "$FEATURE_BRANCH $TEMP_BRANCH" > $FILE
+
+    # echo "Resolve your conflicts and execute: catch-up --continue"
+  else
+    echo "--- No changes here"
+  fi
+fi
