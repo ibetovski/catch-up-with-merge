@@ -3,7 +3,7 @@ If you struggle adopting `git rebase` in your team​ you could use `​git ​m
 
 ```
 catch-up origin/master
-# resolve your conflicts here (ones, not many times as you would do with the rebase)
+# resolve your conflicts here (once!, not many times as you would do with the rebase if you have many commits)
 git commit
 catch-up --continue
 # this will clean up after you.
